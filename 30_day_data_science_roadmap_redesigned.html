@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Field Manual — 30-Day Data Career Sprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #12171A;
+            --ink-soft: #3C4448;
+            --paper: #EEF1EC;
+            --paper-raised: #FFFFFF;
+            --line: #D7DCD2;
+            --line-strong: #B7BEB2;
+            --amber: #B8791F;
+            --amber-deep: #8F5D14;
+            --amber-tint: #F4E7CE;
+            --teal: #2F6E68;
+            --teal-tint: #DFEBE8;
+            --rust: #9C4A2E;
+            --rust-tint: #F1DFD6;
+            --muted: #6B746E;
+        }
+        * { -webkit-font-smoothing: antialiased; }
+        body {
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(var(--line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--line) 1px, transparent 1px);
+            background-size: 32px 32px;
+            background-attachment: fixed;
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+        }
+        .serif { font-family: 'Fraunces', serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .paper-panel {
+            background: var(--paper-raised);
+            border: 1px solid var(--line-strong);
+        }
+        .rule-heading {
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 0.75rem;
+        }
+        .section-index {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            color: var(--muted);
+        }
+        .tab-underline {
+            border-bottom: 2px solid transparent;
+            transition: border-color .15s ease, color .15s ease;
+        }
+        .tab-underline.active {
+            border-bottom-color: var(--amber);
+            color: var(--ink);
+        }
+        .day-card {
+            background: var(--paper-raised);
+            border: 1px solid var(--line-strong);
+            border-left: 3px solid var(--line-strong);
+            transition: border-color .15s ease, transform .1s ease;
+        }
+        .day-card:hover { border-left-color: var(--amber); }
+        .day-card.is-done { border-left-color: var(--teal); }
+        .tick {
+            width: 6px;
+            height: 18px;
+            background: var(--line-strong);
+            border-radius: 1px;
+        }
+        .tick.filled { background: var(--amber); }
+        .chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 520px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 270px;
+        }
+        @media (min-width: 768px) { .chart-container { height: 300px; } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: var(--paper); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 4px; }
+        .btn-ink {
+            background: var(--ink);
+            color: var(--paper-raised);
+        }
+        .btn-ink:hover { background: #262E32; }
+        .stamp-btn {
+            border: 1px solid var(--ink);
+            color: var(--ink);
+            background: transparent;
+        }
+        .stamp-btn:hover { background: var(--ink); color: var(--paper-raised); }
+        ::selection { background: var(--amber-tint); color: var(--ink); }
+        input:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px var(--amber-tint), 0 0 0 1px var(--amber); }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Header: Manual cover strip -->
+    <header class="sticky top-0 z-30" style="background: var(--ink);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <div class="mono text-[11px] tracking-wider text-amber-300/90" style="color: #D9AE63;">FIELD MANUAL — REV. 2026</div>
+                <h1 class="serif text-2xl md:text-[28px] font-semibold text-white tracking-tight mt-0.5">30-Day Data Career Sprint</h1>
+                <p class="text-xs mt-1" style="color:#A9B0AC;">SQL · Excel · Python · Tableau · Power BI — sequenced for hire-readiness</p>
+            </div>
+
+            <!-- Tick-rail progress -->
+            <div class="flex items-stretch gap-2">
+                <div class="paper-panel rounded-sm px-4 py-3">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[10px] uppercase tracking-wider" style="color: var(--muted);">Days logged</span>
+                        <span class="mono text-sm font-semibold"><span id="completedDaysCount">0</span><span style="color:var(--muted);">/30</span> · <span id="progressPercentage">0%</span></span>
+                    </div>
+                    <div class="flex gap-[3px]" id="tickRail"></div>
+                </div>
+                <button onclick="openSettingsModal()" title="Save, back up, or restore your progress" class="paper-panel rounded-sm px-3 flex flex-col items-center justify-center gap-1 mono text-[9px] uppercase tracking-wide" style="color: var(--ink-soft);">
+                    <span style="font-size:16px; line-height:1;">⚙</span>
+                    Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-12">
+
+        <!-- Executive Strategy -->
+        <section class="space-y-5">
+            <div class="flex items-baseline justify-between rule-heading">
+                <div>
+                    <div class="section-index">§1 — SEQUENCE OF ATTACK</div>
+                    <h2 class="serif text-xl font-semibold mt-0.5">Order of Operations</h2>
+                </div>
+                <span class="chip px-2 py-1" style="color: var(--teal); border:1px solid var(--teal);">2026 hiring standard</span>
+            </div>
+            <p class="text-sm max-w-2xl" style="color: var(--ink-soft);">
+                A high-intensity framework built around the five most employer-requested tools. Each step compounds on the last — <span class="mono text-xs" style="color:var(--amber-deep);">SQL → Excel → Python → BI → Portfolio</span>.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">01</span>
+                    <span class="block font-semibold text-sm mt-1 mb-1">SQL First</span>
+                    <p class="text-xs leading-snug" style="color: var(--ink-soft);">Highest request rate in job postings. Master CTEs, window functions &amp; aggregations.</p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">02</span>
+                    <span class="block font-semibold text-sm mt-1 mb-1">Excel, in parallel</span>
+                    <p class="text-xs leading-snug" style="color: var(--ink-soft);">Universal filter. Power Query, Power Pivot, XLOOKUP &amp; dynamic arrays.</p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">03</span>
+                    <span class="block font-semibold text-sm mt-1 mb-1">Python data stack</span>
+                    <p class="text-xs leading-snug" style="color: var(--ink-soft);">Pandas, NumPy, Seaborn &amp; Scikit-learn for EDA and predictive models.</p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">04</span>
+                    <span class="block font-semibold text-sm mt-1 mb-1">BI platforms</span>
+                    <p class="text-xs leading-snug" style="color: var(--ink-soft);">Power BI (DAX/PL-300) or Tableau (LOD/Makeover Monday) — go deep on one.</p>
+                </div>
+                <div class="p-4">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">05</span>
+                    <span class="block font-semibold text-sm mt-1 mb-1">Certs &amp; portfolio</span>
+                    <p class="text-xs leading-snug" style="color: var(--ink-soft);">Host 5 end-to-end projects on GitHub &amp; Tableau Public; sit PL-300/Tableau cert.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-0 border border-t-0" style="border-color: var(--line-strong);">
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="mono text-[10px] uppercase" style="color: var(--muted);">Daily commitment</div>
+                    <div class="serif text-lg font-semibold mt-0.5">8–10 hrs / day</div>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="mono text-[10px] uppercase" style="color: var(--muted);">Core stack</div>
+                    <div class="serif text-lg font-semibold mt-0.5">5 key tools</div>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="mono text-[10px] uppercase" style="color: var(--muted);">Curated resources</div>
+                    <div class="serif text-lg font-semibold mt-0.5">25+ hubs</div>
+                </div>
+                <div class="p-4">
+                    <div class="mono text-[10px] uppercase" style="color: var(--muted);">Target credentials</div>
+                    <div class="serif text-lg font-semibold mt-0.5">5 certs</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Charts -->
+        <section class="space-y-5">
+            <div class="rule-heading">
+                <div class="section-index">§2 — CURRICULUM ANALYTICS</div>
+                <h2 class="serif text-xl font-semibold mt-0.5">How the 30 Days Break Down</h2>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-6" style="border-right: 1px solid var(--line-strong);">
+                    <h3 class="font-semibold text-sm mb-1">Days by technology</h3>
+                    <p class="text-xs mb-4" style="color: var(--muted);">Allocation across SQL, Excel, Python, Scikit-learn, Power BI, Tableau &amp; GitHub.</p>
+                    <div class="chart-container"><canvas id="techDistributionChart"></canvas></div>
+                    <div class="text-center mono text-[10px] mt-3" style="color: var(--muted);">CLICK A SEGMENT TO FILTER THE SCHEDULE BELOW</div>
+                </div>
+                <div class="p-6">
+                    <h3 class="font-semibold text-sm mb-1">Skill profile across 4 weeks</h3>
+                    <p class="text-xs mb-4" style="color: var(--muted);">From extraction and cleansing to predictive modeling and BI architecture.</p>
+                    <div class="chart-container"><canvas id="phaseRadarChart"></canvas></div>
+                    <div class="text-center mono text-[10px] mt-3" style="color: var(--muted);">SHOWS PROGRESSIVE TECHNICAL COMPLEXITY</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tool Hub -->
+        <section class="space-y-5">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 rule-heading">
+                <div>
+                    <div class="section-index">§3 — REFERENCE HUB</div>
+                    <h2 class="serif text-xl font-semibold mt-0.5">Tool-by-Tool Curated References</h2>
+                </div>
+                <div class="flex flex-wrap gap-4" id="toolHubTabs">
+                    <button onclick="switchHubTab('sql')" id="tab-btn-sql" class="tab-underline active mono text-xs uppercase tracking-wide pb-1">1 · SQL</button>
+                    <button onclick="switchHubTab('excel')" id="tab-btn-excel" class="tab-underline mono text-xs uppercase tracking-wide pb-1" style="color: var(--muted);">2 · Excel</button>
+                    <button onclick="switchHubTab('python')" id="tab-btn-python" class="tab-underline mono text-xs uppercase tracking-wide pb-1" style="color: var(--muted);">3 · Python</button>
+                    <button onclick="switchHubTab('tableau')" id="tab-btn-tableau" class="tab-underline mono text-xs uppercase tracking-wide pb-1" style="color: var(--muted);">4 · Tableau</button>
+                    <button onclick="switchHubTab('powerbi')" id="tab-btn-powerbi" class="tab-underline mono text-xs uppercase tracking-wide pb-1" style="color: var(--muted);">5 · Power BI</button>
+                </div>
+            </div>
+            <div id="hubContentArea"></div>
+        </section>
+        <!-- Certifications -->
+        <section class="space-y-5">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3 rule-heading">
+                <div>
+                    <div class="section-index">§4 — CREDENTIALS</div>
+                    <h2 class="serif text-xl font-semibold mt-0.5">Recognized Industry Certifications</h2>
+                </div>
+                <span class="chip px-2 py-1" style="color: var(--rust); border:1px solid var(--rust);">Recruiter-signal verified</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-0 border" style="border-color: var(--line-strong);" id="certificationsGrid"></div>
+        </section>
+
+        <!-- Case Studies -->
+        <section class="space-y-5">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-3 rule-heading">
+                <div>
+                    <div class="section-index">§5 — PORTFOLIO BLUEPRINTS</div>
+                    <h2 class="serif text-xl font-semibold mt-0.5">Real-World Case Studies</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-4" id="caseFilterTabs">
+                    <button onclick="filterCaseStudies('All')" class="case-btn tab-underline active mono text-xs uppercase tracking-wide pb-1" data-industry="All">All</button>
+                    <button onclick="filterCaseStudies('E-Commerce')" class="case-btn tab-underline mono text-xs uppercase tracking-wide pb-1" data-industry="E-Commerce" style="color:var(--muted);">E-Commerce</button>
+                    <button onclick="filterCaseStudies('Finance')" class="case-btn tab-underline mono text-xs uppercase tracking-wide pb-1" data-industry="Finance" style="color:var(--muted);">Finance</button>
+                    <button onclick="filterCaseStudies('Healthcare')" class="case-btn tab-underline mono text-xs uppercase tracking-wide pb-1" data-industry="Healthcare" style="color:var(--muted);">Healthcare</button>
+                    <button onclick="filterCaseStudies('Retail')" class="case-btn tab-underline mono text-xs uppercase tracking-wide pb-1" data-industry="Retail" style="color:var(--muted);">Retail</button>
+                    <button onclick="filterCaseStudies('Tech')" class="case-btn tab-underline mono text-xs uppercase tracking-wide pb-1" data-industry="Tech" style="color:var(--muted);">Tech &amp; SaaS</button>
+                </div>
+            </div>
+            <div id="caseStudiesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </section>
+
+        <!-- Phase Overview -->
+        <section class="space-y-5">
+            <div class="rule-heading">
+                <div class="section-index">§6 — THE JOURNEY</div>
+                <h2 class="serif text-xl font-semibold mt-0.5">Four-Phase Map</h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-5 cursor-pointer hover:bg-black/[0.02] transition-colors" style="border-right: 1px solid var(--line-strong);" onclick="filterByPhase(1)">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[11px]" style="color: var(--amber-deep);">DAYS 01–07</span>
+                        <span class="mono text-[10px]" style="color: var(--muted);">WEEK 1</span>
+                    </div>
+                    <h4 class="serif font-semibold text-base mb-1">Excel &amp; SQL</h4>
+                    <p class="text-xs leading-relaxed mb-3" style="color: var(--ink-soft);">Power Query ETL, DAX modeling, relational joins, subqueries, window functions.</p>
+                    <div class="mono text-[11px] font-semibold" style="color: var(--amber-deep);">VIEW DAYS 1–7 →</div>
+                </div>
+                <div class="p-5 cursor-pointer hover:bg-black/[0.02] transition-colors" style="border-right: 1px solid var(--line-strong);" onclick="filterByPhase(2)">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[11px]" style="color: var(--amber-deep);">DAYS 08–14</span>
+                        <span class="mono text-[10px]" style="color: var(--muted);">WEEK 2</span>
+                    </div>
+                    <h4 class="serif font-semibold text-base mb-1">Python &amp; EDA</h4>
+                    <p class="text-xs leading-relaxed mb-3" style="color: var(--ink-soft);">NumPy vectorization, Pandas tidy data, uni/multivariate profiling, Matplotlib.</p>
+                    <div class="mono text-[11px] font-semibold" style="color: var(--amber-deep);">VIEW DAYS 8–14 →</div>
+                </div>
+                <div class="p-5 cursor-pointer hover:bg-black/[0.02] transition-colors" style="border-right: 1px solid var(--line-strong);" onclick="filterByPhase(3)">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[11px]" style="color: var(--amber-deep);">DAYS 15–21</span>
+                        <span class="mono text-[10px]" style="color: var(--muted);">WEEK 3</span>
+                    </div>
+                    <h4 class="serif font-semibold text-base mb-1">Machine Learning</h4>
+                    <p class="text-xs leading-relaxed mb-3" style="color: var(--ink-soft);">Scikit-learn pipelines, cross-validation, tuning, ROC-AUC metrics.</p>
+                    <div class="mono text-[11px] font-semibold" style="color: var(--amber-deep);">VIEW DAYS 15–21 →</div>
+                </div>
+                <div class="p-5 cursor-pointer hover:bg-black/[0.02] transition-colors" onclick="filterByPhase(4)">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="mono text-[11px]" style="color: var(--amber-deep);">DAYS 22–30</span>
+                        <span class="mono text-[10px]" style="color: var(--muted);">WEEK 4</span>
+                    </div>
+                    <h4 class="serif font-semibold text-base mb-1">BI &amp; Deployment</h4>
+                    <p class="text-xs leading-relaxed mb-3" style="color: var(--ink-soft);">Power BI DAX, Tableau LOD expressions, Git repos, capstone deployment.</p>
+                    <div class="mono text-[11px] font-semibold" style="color: var(--amber-deep);">VIEW DAYS 22–30 →</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Master Schedule -->
+        <section class="space-y-5">
+            <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 rule-heading">
+                <div>
+                    <div class="section-index">§7 — DAILY LOG</div>
+                    <h2 class="serif text-xl font-semibold mt-0.5">Interactive Schedule, Days 1–30</h2>
+                </div>
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative min-w-[220px]">
+                        <input type="text" id="searchInput" placeholder="Search Mode SQL, CS50, DAX, ISLR…"
+                               class="w-full pl-3 pr-3 py-1.5 text-xs mono border rounded-sm" style="border-color: var(--line-strong); background: var(--paper-raised);">
+                    </div>
+                    <button onclick="resetProgress()" title="Reset saved completion checkboxes"
+                            class="stamp-btn px-3 py-1.5 mono text-[11px] uppercase tracking-wide rounded-sm transition-colors">
+                        Reset progress
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span class="mono text-[10px] uppercase tracking-wide" style="color: var(--muted);">Phase</span>
+                    <button onclick="filterByPhase(0)" class="phase-btn tab-underline active mono text-xs pb-1" data-phase="0">All</button>
+                    <button onclick="filterByPhase(1)" class="phase-btn tab-underline mono text-xs pb-1" data-phase="1" style="color:var(--muted);">Excel &amp; SQL</button>
+                    <button onclick="filterByPhase(2)" class="phase-btn tab-underline mono text-xs pb-1" data-phase="2" style="color:var(--muted);">Python &amp; EDA</button>
+                    <button onclick="filterByPhase(3)" class="phase-btn tab-underline mono text-xs pb-1" data-phase="3" style="color:var(--muted);">Machine Learning</button>
+                    <button onclick="filterByPhase(4)" class="phase-btn tab-underline mono text-xs pb-1" data-phase="4" style="color:var(--muted);">BI &amp; Deployment</button>
+                </div>
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+                    <span class="mono text-[10px] uppercase tracking-wide" style="color: var(--muted);">Tool</span>
+                    <button onclick="filterByTool('All')" class="tool-btn tab-underline active mono text-xs pb-1" data-tool="All">All</button>
+                    <button onclick="filterByTool('Excel')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="Excel" style="color:var(--muted);">Excel</button>
+                    <button onclick="filterByTool('SQL')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="SQL" style="color:var(--muted);">SQL</button>
+                    <button onclick="filterByTool('Python')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="Python" style="color:var(--muted);">Python</button>
+                    <button onclick="filterByTool('Scikit-Learn')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="Scikit-Learn" style="color:var(--muted);">Scikit-Learn</button>
+                    <button onclick="filterByTool('Power BI')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="Power BI" style="color:var(--muted);">Power BI</button>
+                    <button onclick="filterByTool('Tableau')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="Tableau" style="color:var(--muted);">Tableau</button>
+                    <button onclick="filterByTool('GitHub')" class="tool-btn tab-underline mono text-xs pb-1" data-tool="GitHub" style="color:var(--muted);">GitHub</button>
+                </div>
+            </div>
+
+            <div id="scheduleGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="noResultsMsg" class="hidden text-center py-12 mono text-xs" style="color: var(--muted);">No learning days match your filter or search query.</div>
+        </section>
+
+        <!-- Career Playbook -->
+        <section class="space-y-5">
+            <div class="rule-heading">
+                <div class="section-index">§8 — AFTER THE SPRINT</div>
+                <h2 class="serif text-xl font-semibold mt-0.5">Career Playbook: Turning 30 Days Into Interviews</h2>
+                <p class="text-sm mt-2 max-w-2xl" style="color: var(--ink-soft);">
+                    The tools and certifications get you in the room. These five moves are what actually get you a callback.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">01 · RESUME</span>
+                    <p class="text-xs leading-relaxed mt-2" style="color: var(--ink-soft);">
+                        Lead every bullet with the business result, not the tool: "Cut churn analysis time from 3 days to 2 hours using SQL + Python" beats "Proficient in SQL and Python." Quantify wherever the case studies above give you a number.
+                    </p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">02 · PORTFOLIO LINKS</span>
+                    <p class="text-xs leading-relaxed mt-2" style="color: var(--ink-soft);">
+                        Put your GitHub and Tableau Public profile links directly under your name on the resume header — not buried at the bottom. Recruiters spend under 10 seconds per resume; make the proof impossible to miss.
+                    </p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">03 · INTERVIEW PITCH</span>
+                    <p class="text-xs leading-relaxed mt-2" style="color: var(--ink-soft);">
+                        For each of the 5 case studies above, rehearse the "Interview Pitch Guide" line in its modal out loud until it's under 45 seconds. That's your answer to "walk me through a project."
+                    </p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">04 · SQL SCREENING</span>
+                    <p class="text-xs leading-relaxed mt-2" style="color: var(--ink-soft);">
+                        Most first-round screens are live SQL. Spend the week before applying doing timed StrataScratch / DataLemur sessions (25 min, no notes) — speed under pressure is what's actually being tested, not knowledge.
+                    </p>
+                </div>
+                <div class="p-4">
+                    <span class="mono text-[11px]" style="color: var(--amber-deep);">05 · NETWORK LOOP</span>
+                    <p class="text-xs leading-relaxed mt-2" style="color: var(--ink-soft);">
+                        Post one dashboard or notebook per week on LinkedIn with the business problem in the caption, not just a screenshot. This is what most self-taught hires say actually generated inbound recruiter messages.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-0 border border-t-0" style="border-color: var(--line-strong);">
+                <div class="p-5" style="border-right: 1px solid var(--line-strong); background: var(--teal-tint);">
+                    <h4 class="mono text-[11px] uppercase tracking-wide mb-2" style="color: var(--teal);">Realistic timeline</h4>
+                    <p class="text-xs leading-relaxed" style="color: #163431;">
+                        30 days builds working proficiency, not mastery. Most self-taught career-switchers report 3–5 months from "starting SQL" to a signed offer, including this sprint, ~4–6 weeks of applications, and 2–3 rounds of interview prep per employer. Treat Day 30 as launch day for the job search, not the finish line.
+                    </p>
+                </div>
+                <div class="p-5" style="background: var(--amber-tint);">
+                    <h4 class="mono text-[11px] uppercase tracking-wide mb-2" style="color: var(--amber-deep);">Where to find real job postings</h4>
+                    <p class="text-xs leading-relaxed" style="color: #4A340C;">
+                        Search titles "Data Analyst," "Business Intelligence Analyst," and "Reporting Analyst" — they overlap heavily and are the most common entry points. LinkedIn's "Easy Apply" filter plus a saved search alert on Indeed for these three titles covers most of the entry-level market.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Modern Toolkit Upgrades -->
+        <section class="space-y-5">
+            <div class="rule-heading">
+                <div class="section-index">§9 — SPEED UPGRADES</div>
+                <h2 class="serif text-xl font-semibold mt-0.5">Modern Toolkit: Faster Than the 2020 Default</h2>
+                <p class="text-sm mt-2 max-w-2xl" style="color: var(--ink-soft);">
+                    Learn pandas and core SQL first — the fundamentals above don't change. Once they're solid, these swap in for real speed and less boilerplate on the same work.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-4" style="border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Polars</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--teal); border: 1px solid var(--teal);">Replaces pandas</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">Rust-built DataFrame engine on Apache Arrow. Routinely 5–30x faster than pandas on groupby, sort, and joins, with 30–60% less memory — and lazy execution that optimizes your whole query before running it.</p>
+                    <a href="https://pola.rs/" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">pola.rs →</a>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">DuckDB</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--teal); border: 1px solid var(--teal);">SQL, zero ETL</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">An in-process analytical SQL engine — query CSV, Parquet, or JSON files directly with plain SQL, no server or import step. Pair it with Polars for a local data warehouse on your own laptop.</p>
+                    <a href="https://duckdb.org/" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">duckdb.org →</a>
+                </div>
+                <div class="p-4" style="border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">ydata-profiling</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--rust); border: 1px solid var(--rust);">Auto-EDA</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">Generates a full exploratory report — distributions, correlations, missing values, warnings — from a single line of code. Turns a 2-hour manual EDA notebook into a 2-minute first pass.</p>
+                    <a href="https://github.com/ydataai/ydata-profiling" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">GitHub →</a>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">PyGWalker</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--rust); border: 1px solid var(--rust);">Visual EDA</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">Turns any pandas or Polars DataFrame into a Tableau-style drag-and-drop UI inside a Jupyter notebook — good for fast visual exploration before you write a single chart line.</p>
+                    <a href="https://github.com/Kanaries/pygwalker" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">GitHub →</a>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Marimo</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--amber-deep); border: 1px solid var(--amber);">Notebook</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">A reactive Python notebook stored as a plain .py file — no hidden execution-order state, real git diffs, and it deploys as a shareable app. Fixes the biggest pain points of classic Jupyter.</p>
+                    <a href="https://marimo.io/" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">marimo.io →</a>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Power Query + DAX quick measures</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--amber-deep); border: 1px solid var(--amber);">Excel/BI side</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">Don't sleep on the non-Python speedups: Power Query's "Fill Down" / "Unpivot Columns" and Power BI's auto-generated quick measures replace what used to be manual formula-writing for common cleaning and time-intelligence tasks.</p>
+                    <a href="https://learn.microsoft.com/en-us/power-query/" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">Microsoft Learn →</a>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-sm text-xs leading-relaxed" style="background: var(--paper-raised); border: 1px solid var(--line-strong); color: var(--ink-soft);">
+                <strong class="mono text-[11px] uppercase" style="color: var(--ink);">Sequencing note —</strong> interviewers still ask pandas and core SQL, so learn those first (Days 1–14 above cover exactly that). Treat everything in this section as a Day 31+ upgrade once you're comfortable, not a shortcut around the fundamentals.
+            </div>
+        </section>
+
+        <!-- LLM-Assisted Analysis -->
+        <section class="space-y-5">
+            <div class="rule-heading">
+                <div class="section-index">§10 — WORKING WITH AN LLM</div>
+                <h2 class="serif text-xl font-semibold mt-0.5">LLM-Assisted Analysis</h2>
+                <p class="text-sm mt-2 max-w-2xl" style="color: var(--ink-soft);">
+                    An LLM writes the first draft of a query or a chart faster than you can — but it doesn't know your schema's quirks or whether a number is actually right. Use it to accelerate, not to skip verification.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border" style="border-color: var(--line-strong);">
+                <div class="p-4" style="border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Claude / ChatGPT — SQL &amp; reasoning</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--teal); border: 1px solid var(--teal);">Design</span>
+                    </div>
+                    <p class="text-[11px] leading-normal" style="color: var(--ink-soft);">Paste your schema (or a `CREATE TABLE` statement) into a chat and describe the question in plain English — "compute Q3 cohort retention by signup month." Good for reasoning through the right join or window function before you write it.</p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong); border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Cursor / Claude Code — in-editor</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--teal); border: 1px solid var(--teal);">Execute</span>
+                    </div>
+                    <p class="text-[11px] leading-normal" style="color: var(--ink-soft);">AI-native editors for the SQL or Python files you're already writing. Inline edits let you describe a change ("group by month, not week") instead of retyping the query, and tab-completion speeds up repetitive joins and pandas chains.</p>
+                </div>
+                <div class="p-4" style="border-bottom: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Code Interpreter / Claude with files</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--rust); border: 1px solid var(--rust);">Explore</span>
+                    </div>
+                    <p class="text-[11px] leading-normal" style="color: var(--ink-soft);">Drop in a CSV or Excel file and ask "what's interesting in this data?" for a fast first-pass EDA — summary stats, plots, and anomaly flags — before you commit to a manual notebook.</p>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">PandasAI</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--rust); border: 1px solid var(--rust);">Explore</span>
+                    </div>
+                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">Open-source Python library that lets you query a pandas/Polars DataFrame, SQL database, or Parquet file in plain English and get an answer or chart back — useful for quick, conversational exploration inside your own scripts.</p>
+                    <a href="https://github.com/sinaptik-ai/pandas-ai" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">GitHub →</a>
+                </div>
+                <div class="p-4" style="border-right: 1px solid var(--line-strong);">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">AI-native notebooks</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--amber-deep); border: 1px solid var(--amber);">Team workflow</span>
+                    </div>
+                    <p class="text-[11px] leading-normal" style="color: var(--ink-soft);">Hex, Deepnote, and Mode now build AI directly into the notebook — connect your warehouse, get suggested queries, and generate a first chart from a natural-language prompt without leaving the notebook.</p>
+                </div>
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="font-semibold text-sm">Copilot for BI tools</span>
+                        <span class="chip px-1.5 py-0.5" style="color: var(--amber-deep); border: 1px solid var(--amber);">Power BI / Tableau</span>
+                    </div>
+                    <p class="text-[11px] leading-normal" style="color: var(--ink-soft);">Power BI's Copilot and Tableau's built-in AI assistant can draft a first DAX measure or LOD expression from a plain-English description — a faster starting point than a blank formula bar, still worth checking against SQLBI/Tableau docs.</p>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-sm text-xs leading-relaxed" style="background: var(--rust-tint); border: 1px solid var(--rust); color: #5A2A18;">
+                <strong class="mono text-[11px] uppercase" style="color: var(--rust);">Verify before you ship —</strong> an LLM can silently misread a schema, join on the wrong key, or invent a plausible-looking number. Always read the generated SQL, spot-check the output against a known total, and never paste an answer straight from a chat into a client-facing dashboard without independently confirming it.
+            </div>
+        </section>
+
+    </main>
+    <!-- Day Detail Modal -->
+    <div id="dayModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(18,23,26,0.55);">
+        <div class="paper-panel max-w-2xl w-full max-h-[92vh] overflow-y-auto custom-scroll rounded-sm p-6 md:p-8 space-y-6">
+            <div class="flex items-start justify-between pb-4" style="border-bottom: 1px solid var(--line);">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="modalDayBadge" class="mono text-xs px-2 py-0.5 rounded-sm btn-ink">Day X</span>
+                        <span id="modalPhaseBadge" class="mono text-xs" style="color: var(--muted);">Phase Y</span>
+                    </div>
+                    <h3 id="modalTitle" class="serif text-2xl font-semibold">Topic Title</h3>
+                </div>
+                <button onclick="closeModal()" class="text-2xl leading-none p-1" style="color: var(--muted);">&times;</button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 p-4 rounded-sm text-xs" style="background: var(--paper); border: 1px solid var(--line);">
+                <div>
+                    <span class="mono text-[10px] uppercase block mb-1" style="color: var(--muted);">Primary tool</span>
+                    <span id="modalTool" class="font-semibold text-sm">Tool Name</span>
+                </div>
+                <div>
+                    <span class="mono text-[10px] uppercase block mb-1" style="color: var(--muted);">Recommended masterclass</span>
+                    <span id="modalResource" class="font-semibold text-sm" style="color: var(--amber-deep);">Resource Name</span>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="mono text-[11px] uppercase tracking-wide">Core concepts &amp; methodologies</h4>
+                <div id="modalConcepts" class="text-xs leading-relaxed p-4 rounded-sm" style="color: var(--ink-soft); background: var(--paper); border: 1px solid var(--line);">Detailed bullet points...</div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 rounded-sm" style="background: var(--teal-tint); border: 1px solid var(--teal);">
+                    <div class="mono text-[10px] uppercase mb-1" style="color: var(--teal);">Interactive practice hub</div>
+                    <div id="modalExercise" class="text-xs font-semibold" style="color: #163431;">Exercise detail link...</div>
+                    <a id="modalExerciseLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 mono text-[11px] font-semibold underline" style="color: var(--teal);">Open practice hub →</a>
+                </div>
+                <div class="p-4 rounded-sm" style="background: var(--amber-tint); border: 1px solid var(--amber);">
+                    <div class="mono text-[10px] uppercase mb-1" style="color: var(--amber-deep);">Curated reference / doc</div>
+                    <div id="modalTheoryRef" class="text-xs font-semibold" style="color: #4A340C;">Theory reference paper...</div>
+                    <a id="modalTheoryLink" href="#" target="_blank" rel="noopener noreferrer" class="inline-block mt-2 mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">Read official reference →</a>
+                </div>
+            </div>
+
+            <div id="modalCaseStudyBox" class="p-4 rounded-sm hidden" style="background: var(--rust-tint); border: 1px solid var(--rust);">
+                <div class="mono text-[10px] uppercase mb-1" style="color: var(--rust);">Linked portfolio case study</div>
+                <div id="modalCaseStudyTitle" class="text-xs font-semibold mb-1">Case Study Title</div>
+                <button id="modalCaseStudyBtn" onclick="" class="mono text-[11px] font-semibold underline" style="color: var(--rust);">Open full case study blueprint →</button>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="mono text-[11px] uppercase tracking-wide">8-hour daily breakdown</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-0 border text-xs" style="border-color: var(--line);">
+                    <div class="p-3" style="border-right: 1px solid var(--line);">
+                        <span class="font-semibold block mb-1" style="color: var(--amber-deep);">Hrs 1–2 · Docs &amp; theory</span>
+                        Study recommended modules, Mode/Microsoft guides, or video masterclasses.
+                    </div>
+                    <div class="p-3" style="border-right: 1px solid var(--line);">
+                        <span class="font-semibold block mb-1" style="color: var(--amber-deep);">Hrs 3–6 · Hands-on code</span>
+                        Drill exercises on DataCamp, DataLemur, LeetCode SQL, Kaggle, or SQLZoo.
+                    </div>
+                    <div class="p-3">
+                        <span class="font-semibold block mb-1" style="color: var(--amber-deep);">Hrs 7–8 · Portfolio &amp; notes</span>
+                        Publish to GitHub/Tableau Public and record daily takeaways below.
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <label for="modalNotes" class="mono text-[11px] uppercase tracking-wide">Personal takeaways &amp; formulas</label>
+                    <span id="notesSavedIndicator" class="mono text-[11px] font-semibold hidden" style="color: var(--teal);">Saved to browser storage ✓</span>
+                </div>
+                <textarea id="modalNotes" rows="3" placeholder="Write down syntax learned, key formulas, or GitHub commit links…"
+                          class="w-full p-3 text-xs rounded-sm" style="border: 1px solid var(--line-strong);"></textarea>
+            </div>
+
+            <div class="flex items-center justify-between pt-4" style="border-top: 1px solid var(--line);">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="modalCompletedCheck" onchange="toggleModalCompletion()" class="w-4 h-4 rounded-sm">
+                    <span class="mono text-[11px] uppercase font-semibold">Mark day as completed</span>
+                </label>
+                <button onclick="saveNotesAndClose()" class="px-5 py-2 mono text-[11px] uppercase tracking-wide btn-ink rounded-sm">Save &amp; close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Case Study Blueprint Modal -->
+    <div id="caseStudyModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(18,23,26,0.55);">
+        <div class="paper-panel max-w-3xl w-full max-h-[92vh] overflow-y-auto custom-scroll rounded-sm p-6 md:p-8 space-y-6">
+            <div class="flex items-start justify-between pb-4" style="border-bottom: 1px solid var(--line);">
+                <div>
+                    <div class="flex items-center gap-2 mb-1">
+                        <span id="csModalIndustry" class="mono text-xs px-2 py-0.5 rounded-sm btn-ink">Industry</span>
+                        <span id="csModalPhase" class="mono text-xs" style="color: var(--muted);">Milestone Target</span>
+                    </div>
+                    <h3 id="csModalTitle" class="serif text-2xl font-semibold">Case Study Title</h3>
+                </div>
+                <button onclick="closeCaseModal()" class="text-2xl leading-none p-1" style="color: var(--muted);">&times;</button>
+            </div>
+
+            <div class="p-4 rounded-sm space-y-2" style="background: var(--paper); border: 1px solid var(--line);">
+                <h4 class="mono text-[11px] uppercase tracking-wide">Business context &amp; problem statement</h4>
+                <p id="csModalProblem" class="text-xs leading-relaxed" style="color: var(--ink-soft);">Problem statement details...</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 rounded-sm" style="background: var(--teal-tint); border: 1px solid var(--teal);">
+                    <h4 class="mono text-[10px] uppercase mb-1" style="color: var(--teal);">Tools &amp; technology stack</h4>
+                    <p id="csModalStack" class="text-xs font-semibold" style="color:#163431;">SQL, Python, Power BI...</p>
+                </div>
+                <div class="p-4 rounded-sm" style="background: var(--amber-tint); border: 1px solid var(--amber);">
+                    <h4 class="mono text-[10px] uppercase mb-1" style="color: var(--amber-deep);">Dataset &amp; source platform</h4>
+                    <p id="csModalDataset" class="text-xs font-semibold" style="color:#4A340C;">Kaggle Dataset Name...</p>
+                    <a id="csModalDatasetLink" href="#" target="_blank" rel="noopener noreferrer" class="text-xs font-semibold underline inline-block mt-1" style="color: var(--amber-deep);">Open public dataset →</a>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="mono text-[11px] uppercase tracking-wide">Technical execution blueprint</h4>
+                <div id="csModalPipeline" class="p-4 mono text-xs rounded-sm overflow-x-auto space-y-1" style="background: var(--ink); color: #E7EAE5;"></div>
+            </div>
+
+            <div class="space-y-2">
+                <h4 class="mono text-[11px] uppercase tracking-wide">Interview pitch guide &amp; impact</h4>
+                <div id="csModalImpact" class="p-4 rounded-sm text-xs leading-relaxed space-y-2" style="background: var(--rust-tint); border: 1px solid var(--rust); color: var(--ink-soft);"></div>
+            </div>
+
+            <div class="flex justify-end pt-4" style="border-top: 1px solid var(--line);">
+                <button onclick="closeCaseModal()" class="px-5 py-2 mono text-[11px] uppercase tracking-wide btn-ink rounded-sm">Close blueprint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings & Save Progress Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background: rgba(18,23,26,0.55);">
+        <div class="paper-panel max-w-md w-full max-h-[92vh] overflow-y-auto custom-scroll rounded-sm p-6 space-y-6">
+            <div class="flex items-start justify-between pb-4" style="border-bottom: 1px solid var(--line);">
+                <div>
+                    <div class="section-index">SETTINGS</div>
+                    <h3 class="serif text-xl font-semibold mt-0.5">Save &amp; Restore Progress</h3>
+                </div>
+                <button onclick="closeSettingsModal()" class="text-2xl leading-none p-1" style="color: var(--muted);">&times;</button>
+            </div>
+
+            <p class="text-xs leading-relaxed" style="color: var(--ink-soft);">
+                Your checked days and notes already autosave to this browser as you go. Use the options below to back them up to a file, move them to another device, or start fresh.
+            </p>
+
+            <div class="p-4 rounded-sm" style="background: var(--teal-tint); border: 1px solid var(--teal);">
+                <div class="mono text-[10px] uppercase mb-1" style="color: var(--teal);">Current status</div>
+                <div class="text-sm font-semibold" style="color: #163431;"><span id="settingsDaysCount">0</span>/30 days logged · <span id="settingsNotesCount">0</span> notes saved</div>
+                <div class="mono text-[10px] mt-1" style="color: var(--muted);">Last change: <span id="settingsLastSaved">—</span></div>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <button onclick="exportProgress()" class="w-full stamp-btn px-4 py-2.5 mono text-[11px] uppercase tracking-wide rounded-sm">Download progress file (.json)</button>
+                    <p class="text-[11px] mt-1" style="color: var(--muted);">Saves your completed days and notes to a file you can keep or move to another computer.</p>
+                </div>
+
+                <div>
+                    <label class="w-full block text-center stamp-btn px-4 py-2.5 mono text-[11px] uppercase tracking-wide rounded-sm cursor-pointer">
+                        Restore from file
+                        <input type="file" id="importFileInput" accept="application/json" class="hidden" onchange="importProgress(event)">
+                    </label>
+                    <p class="text-[11px] mt-1" style="color: var(--muted);">Load a previously downloaded progress file — merges with what's already saved here.</p>
+                </div>
+
+                <div id="importFeedback" class="hidden text-[11px] font-semibold p-2 rounded-sm" style="background: var(--amber-tint); color: var(--amber-deep); border: 1px solid var(--amber);"></div>
+
+                <div class="pt-3" style="border-top: 1px solid var(--line);">
+                    <button onclick="clearAllData()" class="w-full px-4 py-2.5 mono text-[11px] uppercase tracking-wide rounded-sm" style="border: 1px solid var(--rust); color: var(--rust); background: transparent;">Clear all saved progress</button>
+                    <p class="text-[11px] mt-1" style="color: var(--muted);">Erases completed days and notes from this browser. Download a backup first if you want to keep them.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-xs py-8 mt-6" style="background: var(--ink); color: #A9B0AC;">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="serif text-white text-sm font-semibold">30-Day Data Career Sprint — Field Manual</div>
+            <div class="mono text-[11px]">Mode SQL · SQLBolt · CS50 · ExcelJet · Chandoo · Real Python · Stanford ISLR · Guy in a Cube · SQLBI · Microsoft Learn</div>
+        </div>
+    </footer>
+
+    <script>
+        const toolHubData = {
+            sql: {
+                title: 'SQL (Structured Query Language)',
+                priority: 'Priority #1 — Single most-requested skill in data analyst job postings.',
+                milestone: 'Milestone to aim for: Comfortably write Joins, Window Functions (ROW_NUMBER, RANK, LAG/LEAD), CTEs, and Subqueries without looking up syntax.',
+                resources: [
+                    { name: 'Mode SQL Tutorial', type: 'Free, Interactive', desc: 'Built specifically for analysts. Uses real business scenarios; goes beyond basics into window functions, subqueries, and date logic.', url: 'https://mode.com/sql-tutorial/' },
+                    { name: 'SQLBolt', type: 'Free, In-Browser', desc: 'Clean, fast way to drill SELECT/WHERE/JOIN/GROUP BY fundamentals in-browser with zero setup.', url: 'https://sqlbolt.com/' },
+                    { name: 'CS50 SQL (Harvard / edX)', type: 'Free, Certificate available', desc: 'Most structured, rigorous free course (~30 hrs); strong on database design theory and index architecture.', url: 'https://cs50.harvard.edu/sql/' },
+                    { name: 'Kaggle: Intro & Advanced SQL', type: 'Free, Micro-course + Cert', desc: 'Fastest path to a free certificate (~3 hrs); practices directly on BigQuery real datasets.', url: 'https://www.kaggle.com/learn/intro-to-sql' },
+                    { name: 'LeetCode & HackerRank SQL', type: 'Free Tier', desc: 'Interview-style practice — use after learning fundamentals to pass employer technical screening tests.', url: 'https://leetcode.com/studyplan/top-sql-50/' },
+                    { name: 'StrataScratch', type: 'Free Tier', desc: 'Real SQL interview questions sourced from FAANG (Amazon, Meta, Airbnb) for final interview prep.', url: 'https://www.stratascratch.com/' }
+                ]
+            },
+            excel: {
+                title: 'Microsoft Excel (Advanced & Analytics)',
+                priority: 'Priority #2 — Most universally required tool; many analyst roles filter for Excel before SQL.',
+                milestone: 'Milestone to aim for: Pivot tables, XLOOKUP/INDEX-MATCH, Power Query for automated data cleansing, and basic dashboards with slicers.',
+                resources: [
+                    { name: 'ExcelJet', type: 'Free Reference', desc: 'The absolute best quick-reference site for formulas, shortcuts, and dynamic array functions.', url: 'https://exceljet.net/' },
+                    { name: 'Microsoft Official Excel Training', type: 'Free Documentation', desc: 'Official documentation kept current with modern features (dynamic arrays, LAMBDA, Power Query M).', url: 'https://support.microsoft.com/en-us/excel' },
+                    { name: 'Google Data Analytics (Coursera)', type: 'Audit Free / $49 mo', desc: 'Widely recognized entry credential; teaches Excel/Sheets as an analyst uses it (pivots, VLOOKUP/XLOOKUP).', url: 'https://www.coursera.org/professional-certificates/google-data-analytics' },
+                    { name: 'Chandoo.org', type: 'Free Blog / Tutorials', desc: 'Deep dives on pivot tables, dashboards, and Excel-based data visualization — favorite among working analysts.', url: 'https://chandoo.org/' },
+                    { name: 'Excel Beginner to Advanced (Udemy)', type: '~$15 on sale', desc: 'Top project-based option if you prefer structured video walkthroughs.', url: 'https://www.udemy.com/' }
+                ]
+            },
+            python: {
+                title: 'Python for Data Science & Analytics',
+                priority: 'Priority #3 — Focus on the data stack (Pandas, NumPy, Matplotlib/Seaborn, Scikit-learn).',
+                milestone: 'Milestone to aim for: Clean and reshape data with Pandas, produce Seaborn visual distributions, build regression/classification models, and write modular functions.',
+                resources: [
+                    { name: 'Kaggle Learn (Python & ML Track)', type: 'Free, Certificates', desc: 'Fastest way to practice on real datasets; micro-modules taking a few hours each.', url: 'https://www.kaggle.com/learn' },
+                    { name: 'DataCamp Python for Data Science', type: 'Subscription (~$25/mo)', desc: 'Top-ranked platform for Python analytics because it front-loads Pandas/NumPy rather than abstract computer science.', url: 'https://www.datacamp.com/' },
+                    { name: 'freeCodeCamp Data Analysis with Python', type: 'Free, Certificate', desc: 'Project-based, entirely free, produces a portfolio-worthy certificate.', url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/' },
+                    { name: 'Real Python', type: 'Free / Paid', desc: 'Best written tutorial library for going deep into specific Pandas and Python optimization topics.', url: 'https://realpython.com/' },
+                    { name: 'Stanford Statistical Learning (edX / ISLR)', type: 'Free to Audit', desc: 'Gold standard theory underneath Scikit-learn, taught by authors of "An Introduction to Statistical Learning".', url: 'https://www.statlearning.com/' },
+                    { name: '100+ Free Python Resources (Analytics Vidhya)', type: 'Free Roadmap', desc: 'Curated self-paced guide from fundamentals through advanced machine learning.', url: 'https://www.analyticsvidhya.com/' }
+                ]
+            },
+            tableau: {
+                title: 'Tableau Desktop & Tableau Public',
+                priority: 'Priority #4 (Option A) — Standard BI tool for visual analytics and enterprise storytelling.',
+                milestone: 'Milestone to aim for: Build and publish 3–5 interactive dashboards on Tableau Public covering varied chart types, calculated fields, parameters, and LOD expressions.',
+                resources: [
+                    { name: 'Tableau Public + Official Training', type: 'Free Software & Docs', desc: 'Free version of the software essential for publishing an interactive public recruiter portfolio.', url: 'https://public.tableau.com/' },
+                    { name: 'Alex The Analyst Tableau Course', type: 'Free (YouTube)', desc: 'Consistently recommended as the best 100%-free full step-by-step Tableau video walkthrough.', url: 'https://www.youtube.com/@AlexTheAnalyst' },
+                    { name: 'Salesforce Trailhead Tableau', type: 'Free', desc: 'Official interactive self-paced learning path now that Tableau is part of Salesforce.', url: 'https://trailhead.salesforce.com/' },
+                    { name: 'Tableau Certified Data Analyst Track', type: 'Coursera / DataCamp', desc: 'Structured prep path toward the official Tableau Certified Data Analyst credential.', url: 'https://www.tableau.com/learn/certification/certified-data-analyst' },
+                    { name: 'Makeover Monday Community', type: 'Free Weekly Project', desc: 'Weekly datasets to rebuild visualizations — excellent for portfolios and recognized by hiring managers.', url: 'https://www.makeovermonday.co.uk/' }
+                ]
+            },
+            powerbi: {
+                title: 'Microsoft Power BI & DAX Modeling',
+                priority: 'Priority #4 (Option B) — Leading enterprise BI tool tightly integrated with Microsoft stack.',
+                milestone: 'Milestone to aim for: Connect multiple data sources, build a star-schema data model, write intermediate DAX (CALCULATE, time intelligence), and publish reports.',
+                resources: [
+                    { name: 'Microsoft Learn Power BI Paths', type: 'Free', desc: 'Official, current resource built directly around the PL-300 exam blueprint used by Accenture & Deloitte.', url: 'https://learn.microsoft.com/en-us/credentials/certifications/data-analyst-associate/' },
+                    { name: 'Guy in a Cube (YouTube)', type: 'Free', desc: 'Run by former Microsoft Power BI team members; trusted source for practical tutorials and DAX explanations.', url: 'https://www.youtube.com/@GuyInACube' },
+                    { name: 'SQLBI (sqlbi.com)', type: 'Free Guides / Courses', desc: 'Definitive resource for DAX & data modeling by Marco Russo and Alberto Ferrari (creators of DAX standards).', url: 'https://www.sqlbi.com/' },
+                    { name: 'Microsoft PL-300 Certification', type: '~$165 Exam Fee', desc: 'The recognized industry-standard Power BI credential worth the investment when job hunting.', url: 'https://learn.microsoft.com/en-us/credentials/certifications/exams/pl-300/' },
+                    { name: 'DataCamp 9 Power BI Projects', type: 'Free Article & Guide', desc: 'Concrete portfolio project ideas spanning retail, healthcare, and finance.', url: 'https://www.datacamp.com/blog/power-bi-projects' }
+                ]
+            }
+        };
+
+        // Data for Recognized Certifications Blueprint
+        const certificationsData = [
+            {
+                name: 'Google Data Analytics Professional Certificate',
+                provider: 'Coursera / Google',
+                fee: 'Audit Free / ~$49 mo',
+                reviews: '150,000+ Reviews',
+                signal: '⭐⭐⭐⭐⭐ (High)',
+                scope: 'Broad entry-level foundation: SQL, Excel/Sheets, R/Python basics, Tableau, Data Cleansing, Portfolio.',
+                target: 'Entry-Level Analysts',
+                url: 'https://www.coursera.org/professional-certificates/google-data-analytics'
+            },
+            {
+                name: 'Microsoft Certified: Power BI Data Analyst (PL-300)',
+                provider: 'Microsoft Official',
+                fee: '~$165 Exam Fee',
+                reviews: 'Industry Standard',
+                signal: '⭐⭐⭐⭐⭐ (Gold)',
+                scope: 'Data modeling, Power Query transformations, DAX formulas, dashboard security, service publishing.',
+                target: 'Power BI & BI Developers',
+                url: 'https://learn.microsoft.com/en-us/credentials/certifications/data-analyst-associate/'
+            },
+            {
+                name: 'Tableau Certified Data Analyst',
+                provider: 'Tableau / Salesforce',
+                fee: '~$250 Exam Fee',
+                reviews: 'Enterprise Standard',
+                signal: '⭐⭐⭐⭐⭐ (Gold)',
+                scope: 'Data preparation, visual analytics, calculated fields, parameters, LODs, Tableau Server/Online governance.',
+                target: 'Tableau & BI Analysts',
+                url: 'https://www.tableau.com/learn/certification/certified-data-analyst'
+            },
+            {
+                name: 'IBM Data Analyst Professional Certificate',
+                provider: 'Coursera / IBM',
+                fee: 'Audit Free / ~$49 mo',
+                reviews: '80,000+ Reviews',
+                signal: '⭐⭐⭐⭐ (Very High)',
+                scope: 'Comprehensive Python stack (Pandas, NumPy), Cognos Analytics, SQL queries, Excel data analysis.',
+                target: 'Python & Data Analysts',
+                url: 'https://www.coursera.org/professional-certificates/ibm-data-analyst'
+            },
+            {
+                name: 'freeCodeCamp Data Analysis with Python',
+                provider: 'freeCodeCamp (100% Free)',
+                fee: '$0 (Completely Free)',
+                reviews: 'Open Community',
+                signal: '⭐⭐⭐⭐ (High)',
+                scope: 'Pandas, NumPy, Matplotlib, Seaborn + 5 required portfolio projects verified by open-source test suite.',
+                target: 'Portfolio Seekers',
+                url: 'https://www.freecodecamp.org/learn/data-analysis-with-python/'
+            }
+        ];
+
+        // Master Data Array for Industry Case Studies
+        const caseStudiesData = [
+            {
+                id: 'cs1',
+                title: 'E-Commerce Customer Churn & LTV Optimization',
+                industry: 'E-Commerce',
+                phase: 'Phase 1–4 Capstone',
+                linkedDay: 30,
+                dataset: 'Kaggle E-Commerce Customer Behavior & Retention Dataset',
+                datasetUrl: 'https://www.kaggle.com/datasets',
+                stack: 'SQL (PostgreSQL), Python (Pandas/Scikit-Learn), Power BI',
+                problem: 'An online retailer is losing 18% of monthly active subscribers. Leadership needs an automated pipeline to flag high-risk customers prior to churn and identify high-LTV segments.',
+                pipeline: [
+                    '1. SQL Window Functions & CTEs: Extract RFM (Recency, Frequency, Monetary) metrics.',
+                    '2. Python Preprocessing: Handle missing values with KNNImputer, encode categorical demographics with OneHotEncoder.',
+                    '3. ML Model: Train Logistic Regression & Random Forest classifiers; optimize via 5-Fold GridSearch (target: ROC-AUC > 0.85).',
+                    '4. BI Visual Layer: Build interactive Power BI dashboard displaying churn probability scores.'
+                ],
+                impact: 'Identified top 15% churn-prone users with 86% accuracy, enabling proactive retention campaigns estimated to save $1.4M annually.'
+            },
+            {
+                id: 'cs2',
+                title: 'Financial Credit Default Risk Prediction',
+                industry: 'Finance',
+                phase: 'Phase 3 Milestone',
+                linkedDay: 21,
+                dataset: 'Kaggle Home Credit Default Risk Dataset',
+                datasetUrl: 'https://www.kaggle.com/c/home-credit-default-risk',
+                stack: 'Python (NumPy/Pandas), Scikit-Learn (XGBoost Pipeline), GitHub',
+                problem: 'A retail bank needs to automate loan application screening to minimize default rates while maximizing approvals for unbanked applicants with sparse credit history.',
+                pipeline: [
+                    '1. Feature Engineering: Create debt-to-income and credit-utilization ratios in Pandas.',
+                    '2. Imbalance Handling: Apply SMOTE oversampling and cost-sensitive class weights in Scikit-Learn.',
+                    '3. Model Benchmarking: Evaluate Decision Trees vs Random Forests using Precision-Recall Curves.',
+                    '4. Governance & Portfolio: Document model metrics, feature importance, and ROC curves in a public GitHub repo.'
+                ],
+                impact: 'Achieved 0.84 ROC-AUC on test data, reducing potential bad debt write-offs by 14% while approving 8% more qualified borrowers.'
+            },
+            {
+                id: 'cs3',
+                title: 'Healthcare Patient Readmission & Hospital Stay Analysis',
+                industry: 'Healthcare',
+                phase: 'Phase 2 Milestone',
+                linkedDay: 14,
+                dataset: 'Kaggle Diabetes 130-US Hospitals Readmission Dataset',
+                datasetUrl: 'https://www.kaggle.com/datasets',
+                stack: 'Python (Pandas, Seaborn, Matplotlib), SQL',
+                problem: 'A hospital network faces financial penalties due to high 30-day readmission rates among diabetic patients. Operations team needs insights into key medical drivers.',
+                pipeline: [
+                    '1. Data Cleaning: Process 100k+ inpatient records, filter duplicate visits, impute missing lab codes.',
+                    '2. EDA: Perform Pearson correlation and Chi-Square test of independence across medications.',
+                    '3. Statistical Visualization: Generate Seaborn heatmaps and violin plots showing length of stay vs lab procedures.',
+                    '4. Analytical Summary: Author an executive briefing highlighting high-risk medication change patterns.'
+                ],
+                impact: 'Uncovered that patients receiving >3 medication changes had a 34% higher readmission rate, prompting a revised post-discharge protocol.'
+            },
+            {
+                id: 'cs4',
+                title: 'Retail Store Sales Forecasting & Inventory Optimization',
+                industry: 'Retail',
+                phase: 'Phase 1 Milestone',
+                linkedDay: 7,
+                dataset: 'Kaggle Walmart Store Sales Forecasting Dataset',
+                datasetUrl: 'https://www.kaggle.com/c/walmart-recruiting-store-sales-forecasting',
+                stack: 'Excel (Power Query, Power Pivot, DAX), SQL',
+                problem: 'A national retail chain suffers from stockouts during holiday peaks and overstocking during off-seasons across 45 regional stores.',
+                pipeline: [
+                    '1. Excel Power Query ETL: Merge 4 raw CSV files, cleanse null values, unpivot weekly metrics.',
+                    '2. Star Schema Data Model: Connect Fact Sales table to Store, Date, and Promotion dimension tables in Power Pivot.',
+                    '3. DAX Calculations: Build dynamic DAX measures for Year-over-Year (YoY) Sales Growth and Stock Coverage.',
+                    '4. SQL Verification: Write SQL window functions (LAG/LEAD) to validate time-series sales trends.'
+                ],
+                impact: 'Optimized safety stock inventory levels, reducing seasonal out-of-stock incidents by 12% and improving turnover speed.'
+            },
+            {
+                id: 'cs5',
+                title: 'FAANG Digital Product Engagement & A/B Test Analytics',
+                industry: 'Tech',
+                phase: 'Phase 4 Milestone',
+                linkedDay: 26,
+                dataset: 'Makeover Monday & DataLemur User Activity Logs',
+                datasetUrl: 'https://www.makeovermonday.co.uk/',
+                stack: 'SQL (Window Functions, CTEs), Tableau Public, Python',
+                problem: 'A tech platform launched a new UI recommendation feature. Product managers require an analytical audit to evaluate if the UI change significantly improved daily active user (DAU) session duration.',
+                pipeline: [
+                    '1. SQL Funnel Analysis: Use Window Functions (ROW_NUMBER, DENSE_RANK, SUM OVER) to calculate user retention funnels.',
+                    '2. Hypothesis Testing: Run two-sample t-test in Python Statsmodels to measure p-values (alpha = 0.05).',
+                    '3. Tableau Visual Dashboard: Design executive dashboard with Level of Detail ({FIXED}) calculations for Cohort Analysis on Tableau Public.',
+                    '4. Portfolio Pitch: Publish workbook to Tableau Public and document takeaways in GitHub README.'
+                ],
+                impact: 'Confirmed a statistically significant +4.2% increase in average session length, justifying a full rollout to 10M+ global users.'
+            }
+        ];
+
+        // Master Data Array for 30-Day Curriculum
+        const roadmapData = [
+            // Phase 1: Days 1-7 (Excel & SQL)
+            { 
+                day: 1, phase: 1, tool: 'Excel', focus: 'Tabular Computation & Nested Logic', 
+                concepts: 'Logical functions (IF, AND, OR, IFS), lookup functions (XLOOKUP, INDEX-MATCH), cell referencing rules, and nested logical conditions.', 
+                resource: 'ExcelJet Reference & Chandoo Masterclass',
+                exercise: 'ExcelJet Formulas Guide & Google Data Analytics Excel Module',
+                exerciseUrl: 'https://exceljet.net/',
+                theoryRef: 'Microsoft Official Excel Training Documentation',
+                theoryUrl: 'https://support.microsoft.com/en-us/excel'
+            },
+            { 
+                day: 2, phase: 1, tool: 'Excel', focus: 'Power Query & Automated Data Cleansing', 
+                concepts: 'Power Query engine, M language basics, ingesting messy CSVs/Web data, unpivoting columns, and automated cleansing routines.', 
+                resource: 'Chandoo Power Query Guide & Luke Barousse ETL',
+                exercise: 'Coursera Google Data Analytics Data Cleansing Lab',
+                exerciseUrl: 'https://www.coursera.org/professional-certificates/google-data-analytics',
+                theoryRef: 'Microsoft Learn: Power Query M Formula Language Reference',
+                theoryUrl: 'https://learn.microsoft.com/en-us/powerquery-m/'
+            },
+            { 
+                day: 3, phase: 1, tool: 'Excel', focus: 'Power Pivot & Star Schema Modeling', 
+                concepts: 'Power Pivot xVelocity engine, establishing 1:N table relationships, measures vs calculated columns, basic DAX (CALCULATE, SUMX).', 
+                resource: 'Chandoo Dashboard Deep Dive & Luke Barousse Pivot',
+                exercise: 'Excel Pivots & Power Pivot Hands-on Dataset',
+                exerciseUrl: 'https://chandoo.org/',
+                theoryRef: 'Microsoft Learn: Star Schema Design Principles for Analytics',
+                theoryUrl: 'https://learn.microsoft.com/en-us/power-bi/guidance/star-schema'
+            },
+            { 
+                day: 4, phase: 1, tool: 'SQL', focus: 'Declarative SQL & Filtering Engine', 
+                concepts: 'SQL logical execution order (FROM -> WHERE -> GROUP BY -> HAVING -> SELECT -> ORDER BY), basic clauses, DISTINCT, LIMIT.', 
+                resource: 'Mode SQL Tutorial (Beginner) & SQLBolt',
+                exercise: 'SQLBolt In-Browser Lessons 1–12 & Kaggle Intro to SQL',
+                exerciseUrl: 'https://sqlbolt.com/',
+                theoryRef: 'Mode SQL Tutorial: Structured SELECT & Filtering Guidelines',
+                theoryUrl: 'https://mode.com/sql-tutorial/sql-select-statement/'
+            },
+            { 
+                day: 5, phase: 1, tool: 'SQL', focus: 'Relational Joins & Set Operations', 
+                concepts: 'Connecting relational tables via INNER JOIN, LEFT JOIN, RIGHT JOIN, FULL OUTER JOIN, SELF JOIN, and UNION / UNION ALL set operations.', 
+                resource: 'Mode SQL Joins & SQLBolt Advanced',
+                exercise: 'DataLemur SQL Joins Practice & LeetCode SQL 50 (Combine Two Tables)',
+                exerciseUrl: 'https://datalemur.com/sql-tutorial/sql-joins',
+                theoryRef: 'CS50 SQL (Harvard): Database Design & Relational Joins Lecture',
+                theoryUrl: 'https://cs50.harvard.edu/sql/'
+            },
+            { 
+                day: 6, phase: 1, tool: 'SQL', focus: 'Advanced SQL: Window Functions & CTEs', 
+                concepts: 'OVER(), PARTITION BY, ORDER BY, ROW_NUMBER(), RANK(), DENSE_RANK(), LAG(), LEAD(), rolling averages, and Common Table Expressions (WITH).', 
+                resource: 'Mode SQL Advanced Guide & DataLemur',
+                exercise: 'Mode SQL Window Functions Exercises & StrataScratch Hard SQL Questions',
+                exerciseUrl: 'https://mode.com/sql-tutorial/sql-window-functions/',
+                theoryRef: 'Mode Analytics Guide: Advanced SQL Window Functions Architecture',
+                theoryUrl: 'https://mode.com/sql-tutorial/sql-window-functions/'
+            },
+            { 
+                day: 7, phase: 1, tool: 'SQL', focus: 'Live-Coding SQL Interview Sprint & Retail Case Study', 
+                concepts: 'Timed SQL problem solving, query optimization, handling NULL values with COALESCE, subqueries in WHERE vs FROM.', 
+                resource: 'StrataScratch & LeetCode Top 50 SQL',
+                exercise: 'StrataScratch FAANG SQL Interview Questions (Amazon, Meta, Airbnb)',
+                exerciseUrl: 'https://www.stratascratch.com/',
+                theoryRef: 'E.F. Codd (1970) ACM Paper: "A Relational Model of Data for Large Shared Data Banks"',
+                theoryUrl: 'https://dl.acm.org/doi/10.1145/362384.362685',
+                caseStudyId: 'cs4'
+            },
+
+            // Phase 2: Days 8-14 (Python & EDA)
+            { 
+                day: 8, phase: 2, tool: 'Python', focus: 'Python Algorithmic Data Structures', 
+                concepts: 'Primitive data types, lists, tuples, dictionaries, sets, list comprehensions, lambda functions, control flow structures.', 
+                resource: 'Real Python Fundamentals & Kaggle Python Track',
+                exercise: 'Kaggle Learn: Python Micro-Course & freeCodeCamp Python Basics',
+                exerciseUrl: 'https://www.kaggle.com/learn/python',
+                theoryRef: 'Real Python: Python 3 Data Structures Reference Guide',
+                theoryUrl: 'https://realpython.com/'
+            },
+            { 
+                day: 9, phase: 2, tool: 'Python', focus: 'NumPy Vectorized Numerical Computing', 
+                concepts: 'N-dimensional arrays (ndarray), vectorization, broadcasting rules, slicing, matrix multiplication, universal functions (ufuncs).', 
+                resource: 'Real Python NumPy Tutorial & DataCamp',
+                exercise: '100 NumPy Exercises (GitHub Open Repo) & Kaggle NumPy Notebooks',
+                exerciseUrl: 'https://github.com/rougier/numpy-100',
+                theoryRef: 'Nature Journal Paper: "Array programming with NumPy" (Harris et al., Nature 2020)',
+                theoryUrl: 'https://www.nature.com/articles/s41586-020-2649-2'
+            },
+            { 
+                day: 10, phase: 2, tool: 'Python', focus: 'Pandas DataFrames & Tidy Data Manipulation', 
+                concepts: 'Series, DataFrames, read_csv, indexing (loc/iloc), filtering, groupby aggregation, merging DataFrames (merge/concat).', 
+                resource: 'Kaggle Pandas Micro-Course & Real Python Pandas',
+                exercise: 'Kaggle Learn: Pandas Interactive Exercises & freeCodeCamp Data Analysis',
+                exerciseUrl: 'https://www.kaggle.com/learn/pandas',
+                theoryRef: 'Hadley Wickham (2014) Paper: "Tidy Data" (Journal of Statistical Software)',
+                theoryUrl: 'https://www.jstatsoft.org/article/view/v059i10'
+            },
+            { 
+                day: 11, phase: 2, tool: 'Python', focus: 'EDA: Missing Values & Data Cleaning', 
+                concepts: 'Assessing missing data patterns (MCAR, MAR, MNAR), dropna, fillna, mean/median/mode imputation, KNN Imputer basics.', 
+                resource: 'Kaggle Data Cleaning Micro-Course',
+                exercise: 'Kaggle Learn: Data Cleaning Notebook & DataCamp Data Cleaning in Python',
+                exerciseUrl: 'https://www.kaggle.com/learn/data-cleaning',
+                theoryRef: 'Analytics Vidhya: 100+ Free Python Resources & Cleaning Guide',
+                theoryUrl: 'https://www.analyticsvidhya.com/'
+            },
+            { 
+                day: 12, phase: 2, tool: 'Python', focus: 'EDA: Univariate Analysis & Distributions', 
+                concepts: 'Summary statistics (mean, median, IQR, variance), skewness, kurtosis, kernel density estimation (KDE), histograms, Seaborn boxplots.', 
+                resource: 'Kaggle Data Visualization & Seaborn Docs',
+                exercise: 'Kaggle Learn: Data Visualization Course & Seaborn Practice Notebooks',
+                exerciseUrl: 'https://www.kaggle.com/learn/data-visualization',
+                theoryRef: 'Stanford ISLR: Chapter 2 - Statistical Learning & Probability Foundations',
+                theoryUrl: 'https://www.statlearning.com/'
+            },
+            { 
+                day: 13, phase: 2, tool: 'Python', focus: 'EDA: Multivariate Analysis & Correlation', 
+                concepts: 'Scatter plots, pair plots, Pearson & Spearman rank correlation matrices, heatmaps, identifying multicollinearity (VIF).', 
+                resource: 'Kaggle EDA Techniques & Real Python Seaborn',
+                exercise: 'Kaggle Housing Prices Multivariate EDA Notebook',
+                exerciseUrl: 'https://www.kaggle.com/code/pmarcelino/comprehensive-data-exploration-with-python',
+                theoryRef: 'Karl Pearson (1896): Mathematical Contributions to the Theory of Evolution',
+                theoryUrl: 'https://royalsocietypublishing.org/doi/10.1098/rsta.1896.0007'
+            },
+            { 
+                day: 14, phase: 2, tool: 'Python', focus: 'Healthcare Patient Readmission EDA Capstone', 
+                concepts: 'Executing an end-to-end unguided exploratory data analysis notebook with structured insights, cleaning, and Seaborn visual plots.', 
+                resource: 'freeCodeCamp Data Analysis with Python Project',
+                exercise: 'freeCodeCamp Portfolio Project: Medical Examination Data Visualizer',
+                exerciseUrl: 'https://www.freecodecamp.org/learn/data-analysis-with-python/',
+                theoryRef: 'NIST/SEMATECH e-Handbook of Statistical Methods: Exploratory Data Analysis',
+                theoryUrl: 'https://www.itl.nist.gov/div898/handbook/eda/eda.htm',
+                caseStudyId: 'cs3'
+            },
+
+            // Phase 3: Days 15-21 (Machine Learning)
+            { 
+                day: 15, phase: 3, tool: 'Python', focus: 'Supervised Learning Foundations', 
+                concepts: 'Classification vs Regression, feature matrices vs target vectors, loss functions, bias-variance tradeoff, overfitting vs underfitting.', 
+                resource: 'Stanford ISLR (EdX) & Kaggle Intro ML',
+                exercise: 'Kaggle Learn: Intro to Machine Learning Micro-Course',
+                exerciseUrl: 'https://www.kaggle.com/learn/intro-to-machine-learning',
+                theoryRef: 'Stanford ISLR (James, Witten, Hastie, Tibshirani): Chapter 2 & 3',
+                theoryUrl: 'https://www.statlearning.com/'
+            },
+            { 
+                day: 16, phase: 3, tool: 'Scikit-Learn', focus: 'The Scikit-Learn Estimator API', 
+                concepts: 'The fit(), transform(), and predict() API paradigm, train_test_split strategy, stratification, random state reproducibility.', 
+                resource: 'Scikit-Learn Official User Guide',
+                exercise: 'Scikit-Learn Official Interactive Tutorials & Kaggle Model Validation',
+                exerciseUrl: 'https://scikit-learn.org/stable/tutorial/basic/tutorial.html',
+                theoryRef: 'Scikit-Learn Official Documentation: Developer API & Estimator Specifications',
+                theoryUrl: 'https://scikit-learn.org/stable/developers/develop.html'
+            },
+            { 
+                day: 17, phase: 3, tool: 'Scikit-Learn', focus: 'Feature Transformation & Preprocessing', 
+                concepts: 'StandardScaler, MinMaxScaler, RobustScaler, OneHotEncoder, OrdinalEncoder, SimpleImputer, managing data leakage.', 
+                resource: 'Scikit-Learn Preprocessing User Guide',
+                exercise: 'Kaggle Learn: Intermediate Machine Learning (Categorical Variables)',
+                exerciseUrl: 'https://www.kaggle.com/learn/intermediate-machine-learning',
+                theoryRef: 'Scikit-Learn Official Docs: Chapter 6.3 - Preprocessing & Scaling Datasets',
+                theoryUrl: 'https://scikit-learn.org/stable/modules/preprocessing.html'
+            },
+            { 
+                day: 18, phase: 3, tool: 'Scikit-Learn', focus: 'Machine Learning Pipelines', 
+                concepts: 'ColumnTransformer, Pipeline objects, chaining preprocessing estimators with final machine learning classifiers/regressors.', 
+                resource: 'Scikit-Learn Composite Estimators Guide',
+                exercise: 'Kaggle Pipelines Exercise Notebook & DataCamp ML Pipelines',
+                exerciseUrl: 'https://www.kaggle.com/alexisbcook/pipelines',
+                theoryRef: 'Scikit-Learn Docs: Composite Estimators & Pipeline API Architecture',
+                theoryUrl: 'https://scikit-learn.org/stable/modules/compose.html'
+            },
+            { 
+                day: 19, phase: 3, tool: 'Scikit-Learn', focus: 'Supervised Algorithmic Suite', 
+                concepts: 'Logistic Regression, Decision Trees, Random Forests, Gradient Boosting (XGBoost/LightGBM basics), Support Vector Machines.', 
+                resource: 'Kaggle Titanic ML Competition & ISLR Ch. 8',
+                exercise: 'Kaggle Titanic: Machine Learning from Disaster Live Competition Notebook',
+                exerciseUrl: 'https://www.kaggle.com/c/titanic',
+                theoryRef: 'Leo Breiman (2001) Paper: "Random Forests" (Machine Learning 45, Springer)',
+                theoryUrl: 'https://link.springer.com/article/10.1023/A:1010933404324'
+            },
+            { 
+                day: 20, phase: 3, tool: 'Scikit-Learn', focus: 'Cross-Validation & Hyperparameter Tuning', 
+                concepts: 'K-Fold Cross-Validation, Stratified K-Fold, GridSearchCV, RandomizedSearchCV, search space definition, scoring parameters.', 
+                resource: 'Scikit-Learn Model Selection Guide',
+                exercise: 'Kaggle Learn: Model Optimization Exercise & DataCamp Tuning',
+                exerciseUrl: 'https://scikit-learn.org/stable/modules/grid_search.html',
+                theoryRef: 'Bergstra & Bengio (2012): "Random Search for Hyper-Parameter Optimization" (JMLR)',
+                theoryUrl: 'https://www.jmlr.org/papers/v13/bergstra12a.html'
+            },
+            { 
+                day: 21, phase: 3, tool: 'Scikit-Learn', focus: 'Financial Credit Default Risk ML Capstone', 
+                concepts: 'Confusion matrix, Accuracy, Precision, Recall, F1-Score, ROC Curve, ROC-AUC, Mean Squared Error (MSE), R-Squared.', 
+                resource: 'Scikit-Learn Metrics & Scoring User Guide',
+                exercise: 'Kaggle Binary Classification Metrics Notebook (Home Credit Default)',
+                exerciseUrl: 'https://www.kaggle.com/c/home-credit-default-risk',
+                theoryRef: 'Tom Fawcett (2006): "An introduction to ROC analysis" (Pattern Recognition Letters)',
+                theoryUrl: 'https://www.sciencedirect.com/science/article/pii/S016786550500303X',
+                caseStudyId: 'cs2'
+            },
+
+            // Phase 4: Days 22-30 (BI & Deployment)
+            { 
+                day: 22, phase: 4, tool: 'Power BI', focus: 'Power BI Interface & PL-300 Star Schemas', 
+                concepts: 'Power BI Desktop interface, Data Model view, relationship cardinality (1:N, N:M), date table creation, cross-filtering direction.', 
+                resource: 'Microsoft Learn PL-300 Learning Paths & Guy in a Cube',
+                exercise: 'Microsoft Learn: Model Data in Power BI Interactive Labs',
+                exerciseUrl: 'https://learn.microsoft.com/en-us/training/paths/model-data-power-bi/',
+                theoryRef: 'Ralph Kimball: "The Data Warehouse Toolkit" (Star Schema Dimensional Modeling)',
+                theoryUrl: 'https://www.kimballgroup.com/data-warehouse-architecture/'
+            },
+            { 
+                day: 23, phase: 4, tool: 'Power BI', focus: 'DAX Engine & Time Intelligence (SQLBI)', 
+                concepts: 'DAX row context vs filter context, CALCULATE override, ALL, ALLEXCEPT, SAMEPERIODLASTYEAR, TOTALYTD, quick measures.', 
+                resource: 'SQLBI (sqlbi.com) DAX Basics & Guy in a Cube',
+                exercise: 'SQLBI Free DAX Tutorials & DataCamp Power BI DAX Exercises',
+                exerciseUrl: 'https://www.sqlbi.com/',
+                theoryRef: 'SQLBI (Marco Russo & Alberto Ferrari): "The Definitive Guide to DAX"',
+                theoryUrl: 'https://www.sqlbi.com/books/the-definitive-guide-to-dax-2nd-edition/'
+            },
+            { 
+                day: 24, phase: 4, tool: 'Power BI', focus: 'Enterprise Dashboard Deployment & RLS', 
+                concepts: 'Bookmarks, custom tooltips, drill-through actions, Power BI Service publishing, scheduled refresh setup, role-level security (RLS).', 
+                resource: 'Microsoft Learn Power BI Service & Guy in a Cube',
+                exercise: 'DataCamp 9 Power BI Projects Guide & Microsoft Guided Challenge',
+                exerciseUrl: 'https://www.datacamp.com/blog/power-bi-projects',
+                theoryRef: 'Stephen Few: "Information Dashboard Design: Displaying Data for At-a-Glance Monitoring"',
+                theoryUrl: 'http://www.perceptualedge.com/'
+            },
+            { 
+                day: 25, phase: 4, tool: 'Tableau', focus: 'VizQL Engine & Tableau Public Portfolios', 
+                concepts: 'Connecting to data sources, Dimensions vs Measures, Discrete (blue) vs Continuous (green), marks card, publishing to Tableau Public.', 
+                resource: 'Alex The Analyst Full Tableau Course & Tableau Public',
+                exercise: 'Tableau Public Account Setup & Makeover Monday Practice Dataset',
+                exerciseUrl: 'https://public.tableau.com/',
+                theoryRef: 'Salesforce Trailhead: Tableau Desktop Fundamentals Modules',
+                theoryUrl: 'https://trailhead.salesforce.com/'
+            },
+            { 
+                day: 26, phase: 4, tool: 'Tableau', focus: 'Advanced Tableau: LODs & Makeover Monday', 
+                concepts: 'Level of Detail (LOD) expressions ({FIXED}, {INCLUDE}, {EXCLUDE}), interactive parameters, set actions, dashboard layout containers.', 
+                resource: 'Makeover Monday Community & Alex The Analyst LODs',
+                exercise: 'Makeover Monday Weekly Visualization Challenge Submission',
+                exerciseUrl: 'https://www.makeovermonday.co.uk/',
+                theoryRef: 'Tableau Official Documentation: "Understanding Level of Detail (LOD) Expressions"',
+                theoryUrl: 'https://help.tableau.com/current/pro/desktop/en-us/calculations_calculatedfields_lod.htm',
+                caseStudyId: 'cs5'
+            },
+            { 
+                day: 27, phase: 4, tool: 'GitHub', focus: 'Git Version Control & Repository Setup', 
+                concepts: 'git init, git clone, git add, git commit, git push, git pull, branching (git branch, git checkout), resolving merge conflicts.', 
+                resource: 'GitHub Skills Sandbox & freeCodeCamp Git Guide',
+                exercise: 'GitHub Skills Sandbox Interactive Modules (skills.github.com)',
+                exerciseUrl: 'https://skills.github.com/',
+                theoryRef: 'Scott Chacon & Ben Straub: "Pro Git" (Official Open Source Book)',
+                theoryUrl: 'https://git-scm.com/book/en/v2'
+            },
+            { 
+                day: 28, phase: 4, tool: 'GitHub', focus: 'Data Science Repository Architecture', 
+                concepts: 'Cookiecutter Data Science structure, virtual environments (venv/conda), requirements.txt, .gitignore for API keys and data.', 
+                resource: 'Cookiecutter Data Science Best Practices',
+                exercise: 'Structuring a Local Data Science Repo with virtualenv & requirements.txt',
+                exerciseUrl: 'https://cookiecutter-data-science.drivendata.org/',
+                theoryRef: 'Greg Wilson et al. (2017): "Good Enough Practices in Scientific Computing" (PLOS Comp Bio)',
+                theoryUrl: 'https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005510'
+            },
+            { 
+                day: 29, phase: 4, tool: 'GitHub', focus: 'Technical Portfolio README Authoring', 
+                concepts: 'Authoring executive README.md, business problem statement, data pipeline diagram, key findings, interactive dashboard links.', 
+                resource: 'GitHub Markdown Formatting Guide',
+                exercise: 'Authoring a Comprehensive Portfolio README.md on GitHub',
+                exerciseUrl: 'https://docs.github.com/en/get-started/writing-on-github',
+                theoryRef: 'GitHub Official Guide: Basic Writing and Formatting Syntax on GitHub',
+                theoryUrl: 'https://docs.github.com/en/get-started/writing-on-github'
+            },
+            { 
+                day: 30, phase: 4, tool: 'GitHub', focus: 'End-to-End Capstone Launch & Cert Prep', 
+                concepts: 'Integrating SQL ETL, Python Pandas cleaning, Scikit-learn model pipeline, and Tableau/Power BI dashboard links into public GitHub.', 
+                resource: 'Kaggle Portfolio Launch & PL-300 / Tableau Prep',
+                exercise: 'Public Portfolio Launch on GitHub & Tableau Public Profile Submission',
+                exerciseUrl: 'https://github.com/',
+                theoryRef: 'Google Engineering Paper: "Hidden Technical Debt in Machine Learning Systems" (Sculley et al., NIPS)',
+                theoryUrl: 'https://papers.nips.cc/paper_files/paper/2015/hash/86df7dcfb2ce14e500809412d3010fdb-Abstract.html',
+                caseStudyId: 'cs1'
+            }
+        ];
+        // Application State
+        let activePhaseFilter = 0; // 0 = All
+        let activeToolFilter = 'All';
+        let activeIndustryFilter = 'All';
+        let searchQuery = '';
+        let activeHubTab = 'sql';
+        let completedDays = JSON.parse(localStorage.getItem('ds30_completed_days')) || [];
+        let dayNotes = JSON.parse(localStorage.getItem('ds30_day_notes')) || {};
+        let currentModalDay = null;
+
+        const toolBadgeColors = {
+            'Excel':         { fg: '#163431', border: '#2F6E68' },
+            'SQL':           { fg: '#4A340C', border: '#B8791F' },
+            'Python':        { fg: '#4A340C', border: '#B8791F' },
+            'Scikit-Learn':  { fg: '#5A2A18', border: '#9C4A2E' },
+            'Power BI':      { fg: '#163431', border: '#2F6E68' },
+            'Tableau':       { fg: '#5A2A18', border: '#9C4A2E' },
+            'GitHub':        { fg: '#3C4448', border: '#6B746E' }
+        };
+
+        // DOM Initialization
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTickRail();
+            renderToolHub();
+            renderCertifications();
+            renderCaseStudies();
+            renderSchedule();
+            updateProgressMetrics();
+            initCharts();
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderSchedule();
+            });
+        });
+
+        // Build the 30-tick progress rail
+        function renderTickRail() {
+            const rail = document.getElementById('tickRail');
+            rail.innerHTML = '';
+            for (let i = 1; i <= 30; i++) {
+                const t = document.createElement('div');
+                t.className = 'tick' + (completedDays.includes(i) ? ' filled' : '');
+                t.title = `Day ${i}`;
+                rail.appendChild(t);
+            }
+        }
+
+        // Switch Tool Hub Tab
+        function switchHubTab(toolKey) {
+            activeHubTab = toolKey;
+            const labels = { sql: '1 · SQL', excel: '2 · Excel', python: '3 · Python', tableau: '4 · Tableau', powerbi: '5 · Power BI' };
+            ['sql', 'excel', 'python', 'tableau', 'powerbi'].forEach(key => {
+                const btn = document.getElementById(`tab-btn-${key}`);
+                if (key === toolKey) {
+                    btn.className = 'tab-underline active mono text-xs uppercase tracking-wide pb-1';
+                    btn.style.color = '';
+                } else {
+                    btn.className = 'tab-underline mono text-xs uppercase tracking-wide pb-1';
+                    btn.style.color = 'var(--muted)';
+                }
+            });
+            renderToolHub();
+        }
+
+        // Render Tool Hub Content
+        function renderToolHub() {
+            const data = toolHubData[activeHubTab];
+            const area = document.getElementById('hubContentArea');
+            if (!data) return;
+
+            area.innerHTML = `
+                <div class="border" style="border-color: var(--line-strong);">
+                    <div class="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2" style="background: var(--amber-tint); border-bottom: 1px solid var(--line-strong);">
+                        <div>
+                            <h3 class="serif font-semibold text-base">${data.title}</h3>
+                            <p class="mono text-[11px] mt-0.5" style="color: var(--amber-deep);">${data.priority}</p>
+                        </div>
+                        <span class="chip px-2 py-1" style="border: 1px solid var(--amber-deep); color: var(--amber-deep); background: var(--paper-raised);">Target skill milestone</span>
+                    </div>
+
+                    <div class="p-4 text-xs leading-relaxed" style="background: var(--teal-tint); color: #163431; border-bottom: 1px solid var(--line-strong);">
+                        <strong class="mono text-[11px] uppercase">Target hiring milestone —</strong> ${data.milestone}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                        ${data.resources.map((res, i) => `
+                            <div class="p-4 flex flex-col justify-between space-y-2" style="border-top: ${i < 3 ? '0' : '1px solid var(--line)'}; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);">
+                                <div>
+                                    <div class="flex items-center justify-between gap-2 mb-1">
+                                        <span class="font-semibold text-xs">${res.name}</span>
+                                        <span class="chip px-1.5 py-0.5 whitespace-nowrap" style="color: var(--amber-deep); border: 1px solid var(--amber);">${res.type}</span>
+                                    </div>
+                                    <p class="text-[11px] leading-normal mb-2" style="color: var(--ink-soft);">${res.desc}</p>
+                                </div>
+                                <a href="${res.url}" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline inline-block mt-auto" style="color: var(--amber-deep);">
+                                    Open resource →
+                                </a>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Certifications Grid
+        function renderCertifications() {
+            const container = document.getElementById('certificationsGrid');
+            container.innerHTML = certificationsData.map((cert, i) => `
+                <div class="p-4 flex flex-col justify-between space-y-3" style="${i < certificationsData.length - 1 ? 'border-right: 1px solid var(--line-strong);' : ''}">
+                    <div>
+                        <div class="flex items-center justify-between mb-1 gap-1">
+                            <span class="mono text-[10px] uppercase" style="color: var(--muted);">${cert.provider}</span>
+                            <span class="chip px-1.5 py-0.5 whitespace-nowrap" style="color: var(--teal); border: 1px solid var(--teal);">${cert.fee}</span>
+                        </div>
+                        <h4 class="font-semibold text-xs leading-snug mb-1">${cert.name}</h4>
+                        <div class="mono text-[10px] font-semibold mb-2" style="color: var(--amber-deep);">${cert.signal} recruiter signal</div>
+                        <p class="text-[11px] leading-snug" style="color: var(--ink-soft);">${cert.scope}</p>
+                    </div>
+                    <div class="pt-2 flex items-center justify-between mt-auto" style="border-top: 1px solid var(--line);">
+                        <span class="mono text-[10px]" style="color: var(--muted);">${cert.target}</span>
+                        <a href="${cert.url}" target="_blank" rel="noopener noreferrer" class="mono text-[11px] font-semibold underline" style="color: var(--amber-deep);">Details →</a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Case Studies Cards
+        function renderCaseStudies() {
+            const container = document.getElementById('caseStudiesGrid');
+            container.innerHTML = '';
+
+            const filtered = caseStudiesData.filter(cs => activeIndustryFilter === 'All' || cs.industry === activeIndustryFilter);
+
+            filtered.forEach(cs => {
+                const card = document.createElement('div');
+                card.className = 'day-card p-5 flex flex-col justify-between space-y-3 rounded-sm';
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="chip px-2 py-0.5" style="border: 1px solid var(--rust); color: var(--rust);">${cs.industry}</span>
+                            <span class="mono text-[11px]" style="color: var(--muted);">${cs.phase}</span>
+                        </div>
+                        <h3 class="serif font-semibold text-base mb-1 cursor-pointer" onclick="openCaseModal('${cs.id}')">
+                            ${cs.title}
+                        </h3>
+                        <p class="text-xs leading-relaxed line-clamp-3" style="color: var(--ink-soft);">${cs.problem}</p>
+                    </div>
+                    <div class="space-y-2 pt-2" style="border-top: 1px solid var(--line);">
+                        <div class="text-[11px]" style="color: var(--muted);"><strong style="color: var(--ink);">Stack —</strong> ${cs.stack}</div>
+                        <div class="flex items-center justify-between pt-1">
+                            <button onclick="openCaseModal('${cs.id}')" class="mono text-[11px] font-semibold" style="color: var(--rust);">View full blueprint →</button>
+                            ${cs.linkedDay ? `<span class="chip px-1.5 py-0.5" style="color: var(--teal); border: 1px solid var(--teal);">Day ${cs.linkedDay} linked</span>` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterCaseStudies(industry) {
+            activeIndustryFilter = industry;
+            document.querySelectorAll('.case-btn').forEach(btn => {
+                if (btn.getAttribute('data-industry') === industry) {
+                    btn.className = 'case-btn tab-underline active mono text-xs uppercase tracking-wide pb-1';
+                    btn.style.color = '';
+                } else {
+                    btn.className = 'case-btn tab-underline mono text-xs uppercase tracking-wide pb-1';
+                    btn.style.color = 'var(--muted)';
+                }
+            });
+            renderCaseStudies();
+        }
+
+        // Open Case Study Modal
+        function openCaseModal(caseId) {
+            const cs = caseStudiesData.find(item => item.id === caseId);
+            if (!cs) return;
+
+            document.getElementById('csModalIndustry').textContent = cs.industry;
+            document.getElementById('csModalPhase').textContent = cs.phase;
+            document.getElementById('csModalTitle').textContent = cs.title;
+            document.getElementById('csModalProblem').textContent = cs.problem;
+            document.getElementById('csModalStack').textContent = cs.stack;
+            document.getElementById('csModalDataset').textContent = cs.dataset;
+            document.getElementById('csModalDatasetLink').href = cs.datasetUrl;
+
+            const pipelineBox = document.getElementById('csModalPipeline');
+            pipelineBox.innerHTML = cs.pipeline.map(step => `<div>${step}</div>`).join('');
+
+            document.getElementById('csModalImpact').innerHTML = `
+                <div class="mono text-[11px] uppercase font-semibold mb-1" style="color: var(--rust);">Measured business impact</div>
+                <p>${cs.impact}</p>
+                <div class="mono text-[11px] uppercase font-semibold mt-2 mb-1" style="color: var(--rust);">Interview pitch guide</div>
+                <p class="italic" style="color: var(--muted);">"In this project, I addressed ${cs.industry.toLowerCase()} user engagement using ${cs.stack}. I cleansed raw data, engineered features, validated model performance, and delivered dynamic visual dashboards on GitHub / Tableau Public."</p>
+            `;
+
+            document.getElementById('caseStudyModal').classList.remove('hidden');
+        }
+
+        function closeCaseModal() {
+            document.getElementById('caseStudyModal').classList.add('hidden');
+        }
+
+        // Update progress metrics
+        function updateProgressMetrics() {
+            const count = completedDays.length;
+            const percentage = Math.round((count / 30) * 100);
+            document.getElementById('completedDaysCount').textContent = count;
+            document.getElementById('progressPercentage').textContent = `${percentage}%`;
+            renderTickRail();
+            refreshSettingsStatus();
+        }
+
+        function markSaved() {
+            localStorage.setItem('ds30_last_saved', new Date().toISOString());
+        }
+
+        function refreshSettingsStatus() {
+            const daysEl = document.getElementById('settingsDaysCount');
+            const notesEl = document.getElementById('settingsNotesCount');
+            const savedEl = document.getElementById('settingsLastSaved');
+            if (!daysEl) return; // modal not yet in DOM on first paint, harmless no-op
+            daysEl.textContent = completedDays.length;
+            notesEl.textContent = Object.values(dayNotes).filter(n => n && n.trim().length > 0).length;
+            const ts = localStorage.getItem('ds30_last_saved');
+            savedEl.textContent = ts ? new Date(ts).toLocaleString() : '—';
+        }
+
+        function openSettingsModal() {
+            refreshSettingsStatus();
+            document.getElementById('importFeedback').classList.add('hidden');
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        // Export progress (completed days + notes) as a downloadable JSON file
+        function exportProgress() {
+            const payload = {
+                app: '30-day-data-career-sprint',
+                exportedAt: new Date().toISOString(),
+                completedDays,
+                dayNotes
+            };
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const stamp = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `data-sprint-progress-${stamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        // Import a previously exported progress file, merging with current state
+        function importProgress(event) {
+            const file = event.target.files[0];
+            const feedback = document.getElementById('importFeedback');
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    const importedDays = Array.isArray(data.completedDays) ? data.completedDays : [];
+                    const importedNotes = (data.dayNotes && typeof data.dayNotes === 'object') ? data.dayNotes : {};
+
+                    completedDays = Array.from(new Set([...completedDays, ...importedDays])).sort((a, b) => a - b);
+                    dayNotes = { ...dayNotes, ...importedNotes };
+
+                    localStorage.setItem('ds30_completed_days', JSON.stringify(completedDays));
+                    localStorage.setItem('ds30_day_notes', JSON.stringify(dayNotes));
+                    markSaved();
+
+                    updateProgressMetrics();
+                    renderSchedule();
+
+                    feedback.textContent = `Restored ${importedDays.length} completed day(s) and ${Object.keys(importedNotes).length} note(s). Merged with your existing progress.`;
+                    feedback.classList.remove('hidden');
+                } catch (err) {
+                    feedback.textContent = 'Could not read that file — make sure it\'s a progress file downloaded from this page.';
+                    feedback.style.background = 'var(--rust-tint)';
+                    feedback.style.color = 'var(--rust)';
+                    feedback.style.borderColor = 'var(--rust)';
+                    feedback.classList.remove('hidden');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function clearAllData() {
+            if (confirm('This will erase all completed days and notes saved in this browser. Download a backup first if you want to keep them. Continue?')) {
+                completedDays = [];
+                dayNotes = {};
+                localStorage.setItem('ds30_completed_days', JSON.stringify(completedDays));
+                localStorage.setItem('ds30_day_notes', JSON.stringify(dayNotes));
+                markSaved();
+                updateProgressMetrics();
+                renderSchedule();
+                closeSettingsModal();
+            }
+        }
+
+        function toggleDayCompletion(dayNumber) {
+            const index = completedDays.indexOf(dayNumber);
+            if (index > -1) { completedDays.splice(index, 1); } else { completedDays.push(dayNumber); }
+            localStorage.setItem('ds30_completed_days', JSON.stringify(completedDays));
+            markSaved();
+            updateProgressMetrics();
+            renderSchedule();
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all checked completion progress? Notes will be preserved.')) {
+                completedDays = [];
+                localStorage.setItem('ds30_completed_days', JSON.stringify(completedDays));
+                markSaved();
+                updateProgressMetrics();
+                renderSchedule();
+            }
+        }
+
+        function filterByPhase(phaseNum) {
+            activePhaseFilter = phaseNum;
+            document.querySelectorAll('.phase-btn').forEach(btn => {
+                const btnPhase = parseInt(btn.getAttribute('data-phase'));
+                if (btnPhase === phaseNum) {
+                    btn.className = 'phase-btn tab-underline active mono text-xs pb-1';
+                    btn.style.color = '';
+                } else {
+                    btn.className = 'phase-btn tab-underline mono text-xs pb-1';
+                    btn.style.color = 'var(--muted)';
+                }
+            });
+            renderSchedule();
+            document.getElementById('scheduleGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function filterByTool(toolName) {
+            activeToolFilter = toolName;
+            document.querySelectorAll('.tool-btn').forEach(btn => {
+                const btnTool = btn.getAttribute('data-tool');
+                if (btnTool === toolName) {
+                    btn.className = 'tool-btn tab-underline active mono text-xs pb-1';
+                    btn.style.color = '';
+                } else {
+                    btn.className = 'tool-btn tab-underline mono text-xs pb-1';
+                    btn.style.color = 'var(--muted)';
+                }
+            });
+            renderSchedule();
+        }
+
+        // Render Master Schedule Cards
+        function renderSchedule() {
+            const container = document.getElementById('scheduleGrid');
+            const noResults = document.getElementById('noResultsMsg');
+            container.innerHTML = '';
+
+            const filtered = roadmapData.filter(item => {
+                const matchesPhase = activePhaseFilter === 0 || item.phase === activePhaseFilter;
+                const matchesTool = activeToolFilter === 'All' || item.tool === activeToolFilter;
+                const matchesSearch = searchQuery === '' ||
+                    item.focus.toLowerCase().includes(searchQuery) ||
+                    item.concepts.toLowerCase().includes(searchQuery) ||
+                    item.tool.toLowerCase().includes(searchQuery) ||
+                    item.exercise.toLowerCase().includes(searchQuery) ||
+                    item.theoryRef.toLowerCase().includes(searchQuery) ||
+                    `day ${item.day}`.includes(searchQuery);
+                return matchesPhase && matchesTool && matchesSearch;
+            });
+
+            noResults.classList.toggle('hidden', filtered.length !== 0);
+
+            filtered.forEach(item => {
+                const isDone = completedDays.includes(item.day);
+                const badge = toolBadgeColors[item.tool] || { fg: 'var(--ink)', border: 'var(--line-strong)' };
+                const dayNum = String(item.day).padStart(2, '0');
+
+                const card = document.createElement('div');
+                card.className = `day-card rounded-sm p-5 flex flex-col justify-between${isDone ? ' is-done' : ''}`;
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-baseline gap-2">
+                                <span class="serif text-2xl font-semibold" style="color: ${isDone ? 'var(--teal)' : 'var(--ink)'};">${dayNum}</span>
+                                <span class="mono text-[10px]" style="color: var(--muted);">PHASE ${item.phase}</span>
+                            </div>
+                            <span class="chip px-2 py-0.5" style="color: ${badge.fg}; border: 1px solid ${badge.border};">${item.tool}</span>
+                        </div>
+
+                        <h3 class="font-semibold text-sm mb-1 cursor-pointer" onclick="openModal(${item.day})">
+                            ${item.focus}
+                        </h3>
+
+                        <p class="text-xs leading-relaxed line-clamp-2 mb-3" style="color: var(--ink-soft);">
+                            ${item.concepts}
+                        </p>
+
+                        <div class="mb-2 p-2 rounded-sm text-[11px] flex items-start gap-1.5" style="background: var(--teal-tint); border: 1px solid var(--teal);">
+                            <span class="font-semibold mono text-[10px] uppercase" style="color: var(--teal);">Practice</span>
+                            <span class="truncate" style="color: #163431;">${item.exercise}</span>
+                        </div>
+
+                        ${item.caseStudyId ? `
+                            <div class="mb-3 p-2 rounded-sm text-[11px] flex items-center justify-between gap-2" style="background: var(--rust-tint); border: 1px solid var(--rust);">
+                                <span style="color: #5A2A18;"><strong class="mono text-[10px] uppercase">Case study —</strong> ${caseStudiesData.find(c => c.id === item.caseStudyId)?.title}</span>
+                                <button onclick="openCaseModal('${item.caseStudyId}')" class="font-semibold underline whitespace-nowrap" style="color: var(--rust);">View →</button>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-between mt-auto" style="border-top: 1px solid var(--line);">
+                        <button onclick="openModal(${item.day})" class="mono text-[11px] font-semibold" style="color: var(--amber-deep);">
+                            Study brief →
+                        </button>
+                        <label class="flex items-center gap-1.5 cursor-pointer mono text-[11px]" style="color: var(--ink-soft);">
+                            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleDayCompletion(${item.day})" class="w-4 h-4 rounded-sm">
+                            <span>${isDone ? 'Logged' : 'Mark done'}</span>
+                        </label>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Day Detail Modal
+        function openModal(dayNumber) {
+            const item = roadmapData.find(d => d.day === dayNumber);
+            if (!item) return;
+
+            currentModalDay = dayNumber;
+
+            document.getElementById('modalDayBadge').textContent = `Day ${item.day}`;
+            document.getElementById('modalPhaseBadge').textContent = `Phase ${item.phase} (Week ${Math.ceil(item.day / 7)})`;
+            document.getElementById('modalTitle').textContent = item.focus;
+            document.getElementById('modalTool').textContent = item.tool;
+            document.getElementById('modalResource').textContent = item.resource;
+            document.getElementById('modalConcepts').textContent = item.concepts;
+
+            document.getElementById('modalExercise').textContent = item.exercise;
+            document.getElementById('modalExerciseLink').href = item.exerciseUrl;
+
+            document.getElementById('modalTheoryRef').textContent = item.theoryRef;
+            document.getElementById('modalTheoryLink').href = item.theoryUrl;
+
+            const caseBox = document.getElementById('modalCaseStudyBox');
+            if (item.caseStudyId) {
+                const cs = caseStudiesData.find(c => c.id === item.caseStudyId);
+                document.getElementById('modalCaseStudyTitle').textContent = cs.title;
+                const btn = document.getElementById('modalCaseStudyBtn');
+                btn.onclick = () => { closeModal(); openCaseModal(cs.id); };
+                caseBox.classList.remove('hidden');
+            } else {
+                caseBox.classList.add('hidden');
+            }
+
+            const notes = dayNotes[dayNumber] || '';
+            document.getElementById('modalNotes').value = notes;
+            document.getElementById('notesSavedIndicator').classList.add('hidden');
+            document.getElementById('modalCompletedCheck').checked = completedDays.includes(dayNumber);
+            document.getElementById('dayModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('dayModal').classList.add('hidden');
+            currentModalDay = null;
+        }
+
+        function toggleModalCompletion() {
+            if (currentModalDay !== null) { toggleDayCompletion(currentModalDay); }
+        }
+
+        function saveNotesAndClose() {
+            if (currentModalDay !== null) {
+                const text = document.getElementById('modalNotes').value;
+                dayNotes[currentModalDay] = text;
+                localStorage.setItem('ds30_day_notes', JSON.stringify(dayNotes));
+                markSaved();
+                refreshSettingsStatus();
+            }
+            closeModal();
+        }
+
+        // Chart.js Visualizations
+        function initCharts() {
+            const techCtx = document.getElementById('techDistributionChart').getContext('2d');
+            const techCounts = {};
+            roadmapData.forEach(item => { techCounts[item.tool] = (techCounts[item.tool] || 0) + 1; });
+
+            new Chart(techCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(techCounts),
+                    datasets: [{
+                        data: Object.values(techCounts),
+                        backgroundColor: ['#2F6E68', '#B8791F', '#9C4A2E', '#6B746E', '#D9AE63', '#5C8B84', '#C97D57'],
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11, family: 'JetBrains Mono' } } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const percentage = Math.round((value / 30) * 100);
+                                    return ` ${label}: ${value} days (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const selectedTool = Object.keys(techCounts)[index];
+                            filterByTool(selectedTool);
+                            document.getElementById('scheduleGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    }
+                }
+            });
+
+            const radarCtx = document.getElementById('phaseRadarChart').getContext('2d');
+            new Chart(radarCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['ETL & Querying', 'Exploratory EDA', 'Statistical Learning', 'Machine Learning', 'BI Dashboards', 'GitHub Portfolios'],
+                    datasets: [
+                        { label: 'Phase 1: Foundations', data: [95, 40, 30, 10, 50, 20], borderColor: '#B8791F', backgroundColor: 'rgba(184, 121, 31, 0.12)', borderWidth: 2 },
+                        { label: 'Phase 2: Python & EDA', data: [60, 95, 80, 20, 30, 40], borderColor: '#2F6E68', backgroundColor: 'rgba(47, 110, 104, 0.12)', borderWidth: 2 },
+                        { label: 'Phase 3: Machine Learning', data: [30, 60, 90, 95, 20, 50], borderColor: '#9C4A2E', backgroundColor: 'rgba(156, 74, 46, 0.12)', borderWidth: 2 },
+                        { label: 'Phase 4: BI & Deployment', data: [50, 50, 30, 40, 95, 95], borderColor: '#12171A', backgroundColor: 'rgba(18, 23, 26, 0.08)', borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#D7DCD2' },
+                            grid: { color: '#E4E7DF' },
+                            suggestedMin: 0,
+                            suggestedMax: 100,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, family: 'JetBrains Mono' } } }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
